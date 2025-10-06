@@ -1,0 +1,108 @@
+:root { --kepler-header-h: 80px; }
+
+html, body { margin: 0; padding: 0; background:#000; color:#fff; overflow-x: hidden; }
+*, *::before, *::after { box-sizing: border-box; }
+img, video { max-width: 100%; height: auto; display: block; }
+
+/* ===== HEADER ===== */ 
+.kepler-header{
+  position: fixed; top:0; left:0; width:100%;
+  height: var(--kepler-header-h);
+  background: linear-gradient(to right, #0a2472, #1e4db7);
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 40px; z-index: 20; box-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+.kepler-logo{ display:flex; align-items:center; gap:10px; text-decoration:none; }
+.kepler-logo img{ height:50px; width:auto; border-radius:999px; }
+
+/* NAV */
+.kepler-nav-menu{ display:flex; align-items:center; gap:20px; }
+.kepler-nav-menu a{ color:#fff; text-decoration:none; font-weight:bold; transition:.25s; }
+.kepler-nav-menu a:hover{ color:#f6d915; }
+
+.kepler-discover-btn{
+  background:#f6d915; color:#000 !important;
+  padding:8px 15px; border-radius:6px; font-weight:bold; text-decoration:none;
+  transition: transform .2s ease;
+}
+.kepler-discover-btn:hover{ transform:scale(1.05); }
+
+/* ===== HAMBURGUER ===== */
+.kepler-menu-toggle{
+  display:none; width:44px; height:44px; background:transparent; border:0; cursor:pointer; position:relative;
+}
+.kepler-menu-toggle span{
+  position:absolute; left:10px; right:10px; height:3px; background:#fff; border-radius:2px;
+  transition: transform .25s, opacity .25s, top .25s;
+}
+.kepler-menu-toggle span:nth-child(1){ top:13px; }
+.kepler-menu-toggle span:nth-child(2){ top:20px; }
+.kepler-menu-toggle span:nth-child(3){ top:27px; }
+.kepler-menu-toggle.is-open span:nth-child(1){ top:20px; transform: rotate(45deg); }
+.kepler-menu-toggle.is-open span:nth-child(2){ opacity:0; }
+.kepler-menu-toggle.is-open span:nth-child(3){ top:20px; transform: rotate(-45deg); }
+
+/* ===== HERO ===== */
+.kepler-root{ overflow-x: hidden; }
+.kepler-hero{
+  position: relative; width:100%;
+  margin-top: var(--kepler-header-h);
+  min-height: calc(100svh - var(--kepler-header-h));
+  background-size: cover; background-position: center center; background-repeat:no-repeat;
+  overflow:hidden;
+}
+.kepler-overlay{
+  position:absolute; inset:0;
+  background: radial-gradient(80% 90% at 0% 50%, rgba(0,0,0,.55), rgba(0,0,0,.85));
+  z-index:1;
+}
+
+.kepler-content{
+  position: relative; z-index: 2;
+  min-height: calc(100svh - var(--kepler-header-h));
+  width: 100%;
+  display: flex; align-items:flex-start; justify-content:flex-end;
+  padding: 30px 60px 20px;
+}
+
+.kepler-card{
+  max-width: min(820px, 92vw);
+  background: rgba(0,0,0,.55);
+  padding: clamp(16px,3.2vw,28px);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
+}
+.kepler-card h1{ margin:0 0 10px; font-weight:800; font-size:clamp(22px,3.4vw,36px); line-height:1.15; }
+.kepler-lead{ margin:0 0 18px; opacity:.95; font-size:clamp(14px,2.1vw,18px); }
+.kepler-card h2{ margin:18px 0 8px; font-weight:800; font-size:clamp(16px,2.3vw,22px); }
+.kepler-card p{ margin:8px 0; line-height:1.6; opacity:.92; font-size:clamp(13px,1.9vw,17px); }
+
+/* ===== RESPONSIVO ===== */
+@media(max-width:900px){
+  .kepler-menu-toggle{ display:block; z-index:25; }
+  .kepler-nav-menu{
+    position:absolute; top: var(--kepler-header-h); right:0; left:0;
+    flex-direction: column; gap:0;
+    background: rgba(0,0,0,0.88); backdrop-filter: blur(4px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 12px;
+    max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; pointer-events: none;
+    transition: max-height .25s ease, opacity .2s ease, visibility .2s ease, padding .2s ease;
+  }
+  .kepler-nav-menu.open{
+    padding: 8px 12px; max-height: 260px; opacity: 1; visibility: visible; pointer-events: auto;
+  }
+  .kepler-nav-menu a{ padding:10px 8px; border-radius:8px; text-align:center; }
+  .kepler-nav-menu a:hover{ background:rgba(255,255,255,.08); }
+  .kepler-discover-btn{ margin-top:6px; align-self:stretch; }
+
+  .kepler-content{ padding: 20px; align-items:flex-end; }
+  .kepler-card{ margin-bottom: 12px; text-align: justify; }
+}
+
+@media(max-width:640px){
+  :root{ --kepler-header-h: 64px; }
+  .kepler-header{ padding: 0 20px; }
+  .kepler-hero{ background-position:center top; }
+}

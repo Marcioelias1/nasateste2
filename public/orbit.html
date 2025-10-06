@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Exoplanet Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: white;
+        }
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+        #controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 10;
+            max-width: 300px;
+            border: 2px solid rgba(100, 200, 255, 0.5);
+        }
+        #controls h2 {
+            color: #64c8ff;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .control-item {
+            margin: 10px 0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .control-item strong {
+            color: #64c8ff;
+        }
+        #planetInfo {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 380px;
+            z-index: 10;
+            border: 2px solid #64c8ff;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #planetInfo h3 {
+            color: #64c8ff;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        #planetInfo p {
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .stat {
+            background: rgba(100, 200, 255, 0.15);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #64c8ff;
+        }
+        .stat strong {
+            color: #64c8ff;
+        }
+        #disclaimer {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: 2px solid rgba(100, 200, 255, 0.3);
+        font-size: 12px;
+        color: #aaa;
+        max-width: 300px;
+        }
+        #disclaimer strong {
+            color: #64c8ff;
+        }
+        #bottomControls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-align: center;
+            border: 2px solid rgba(100, 200, 255, 0.5);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .btn {
+            background: rgba(100, 200, 255, 0.3);
+            border: 1px solid #64c8ff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: rgba(100, 200, 255, 0.6);
+            transform: scale(1.05);
+        }
+        #startMessage {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 100;
+            border: 3px solid #64c8ff;
+        }
+        #startMessage h1 {
+            color: #64c8ff;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+        #startMessage p {
+            margin: 15px 0;
+            font-size: 16px;
+        }
+        .planet-list {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(100, 200, 255, 0.5);
+            z-index: 10;
+        }
+        .planet-list h4 {
+            color: #64c8ff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .planet-btn {
+            display: block;
+            width: 100%;
+            background: rgba(100, 200, 255, 0.2);
+            border: 1px solid #64c8ff;
+            color: white;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .planet-btn:hover {
+            background: rgba(100, 200, 255, 0.4);
+            transform: translateX(5px);
+        }
+        #speedDisplay {
+            color: #64c8ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="startMessage">
+        <h1>🌌 Exoplanet Simulation</h1>
+        <p style="margin: 20px 0; font-size: 18px;">Click to start exploration</p>
+        <p style="font-size: 14px; color: #aaa;">Use mouse and keyboard to navigate through space</p>
+    </div>
+
+    <div id="controls">
+        <h2>⚙️ Controls</h2>
+        <div class="control-item">
+            <strong>Movement:</strong><br>
+            W/S - Forward/Backward<br>
+            A/D - Left/Right<br>
+            Space/Shift - Up/Down<br>
+            Back - ESC
+        </div>
+        <div class="control-item">
+            <strong>Camera:</strong><br>
+            Mouse - Look around<br>
+            Scroll - Zoom
+        </div>
+        <div class="control-item" style="margin-top: 15px;">
+            <button class="btn" onclick="toggleOrbits()" id="orbitBtn">Orbits: ON</button>
+        </div>
+    </div>
+
+    <div id="planetInfo">
+        <h3>Stellar System</h3>
+        <p>Explore space and get close to exoplanets to see detailed information.</p>
+        <p style="color: #64c8ff; margin-top: 15px;">💡 Click the buttons on the right to go directly to a planet!</p>
+    </div>
+
+    <div class="planet-list">
+        <h4>📍 Go to Planet:</h4>
+        <div id="planetButtons"></div>
+    </div>
+
+    <div id="bottomControls">
+        <button class="btn" onclick="changeSpeed(-0.5)">⏪ Slower</button>
+        <div>
+            <div style="font-size: 12px; color: #aaa;">Speed</div>
+            <div id="speedDisplay">1.0x</div>
+        </div>
+        <button class="btn" onclick="changeSpeed(0.5)">⏩ Faster</button>
+        <button class="btn" onclick="togglePause()" id="pauseBtn">⏸️ Pause</button>
+        <button class="btn" onclick="resetCamera()">🎯 Reset</button>
+    </div>
+    <div id="disclaimer">
+    <strong>⚠️ Warning:</strong> This model is merely illustrative. Distance, size, and orbital velocity scales have been adjusted for educational and visualization purposes.
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        let moveForward = false, moveBackward = false;
+        let moveLeft = false, moveRight = false;
+        let moveUp = false, moveDown = false;
+        let yaw = 0, pitch = 0;
+        let isLocked = false;
+        let simulationSpeed = 1.0;
+        let isPaused = false;
+        let showOrbits = true;
+        let showLabels = true;
+
+        const exoplanetData = [
+            {
+                name: "TRAPPIST-1 b",
+                color: 0x7c70c4,
+                size: calculateSizeByMass(1.374),
+                distance: 200,
+                mass: "1.374 Earths",
+                type: "Super Earth",
+                discovery: "2016",
+                star: "TRAPPIST-1",
+                realDistance: "41 light years",
+                period: "1.5 days",
+                info: "TRAPPIST-1 b is a super Earth exoplanet that orbits an M-type star. Its mass is 1.374 Earths, it takes 1.5 days to complete one orbit of its star, and is 0.01154 AU from its star. Its discovery was announced in 2016.",
+                velocity: calculateVelocity(1.5, 10, 60)
+            },
+            {
+                name: "TRAPPIST-1 c",
+                color: 0xedd48a,
+                size: calculateSizeByMass(1.308),
+                distance: 300,
+                mass: "1.308 Earths",
+                type: "Super Earth",
+                discovery: "2016",
+                star: "TRAPPIST-1",
+                realDistance: "41 light years",
+                period: "2.4 days",
+                info: "TRAPPIST-1 c is a super Earth exoplanet that orbits an M-type star. Its mass is 1.308 Earths, it takes 2.4 days to complete one orbit of its star, and is 0.0158 AU from its star. Its discovery was announced in 2016.",
+                velocity: calculateVelocity(2.4, 10, 60)
+            },
+            {
+                name: "TRAPPIST-1 d",
+                color: 0x53b5c2,
+                size: calculateSizeByMass(0.388),
+                distance: 400,
+                mass: "0.388 Earths",
+                type: "Terrestrial",
+                discovery: "2016",
+                star: "TRAPPIST-1",
+                realDistance: "41 light years",
+                period: "4 days",
+                info: "The third planet from its star is illustrated here with a narrow band of water between the hot day side and icy night side of the planet.",
+                velocity: calculateVelocity(4, 10, 60)
+            },
+            {
+                name: "TRAPPIST-1 e",
+                color: 0x856915,
+                size: calculateSizeByMass(0.692),
+                distance: 500,
+                mass: "0.692 Earth",
+                type: "Terrestrial",
+                discovery: "2017",
+                star: "TRAPPIST-1",
+                realDistance: "41 light years",
+                period: "6.1 days",
+                info: "TRAPPIST-1 e is a terrestrial exoplanet that orbits an M-type star. Its mass is 0.692 Earths, it takes 6.1 days to complete one orbit of its star, and is 0.02925 AU from its star. Its discovery was announced in 2017.",
+                velocity: calculateVelocity(6.1, 10, 60)
+            },
+            {
+                name: "TRAPPIST-1 f",
+                color: 0xe6e3da,
+                size: calculateSizeByMass(1.039),
+                distance: 600,
+                mass: "1.039 Earth",
+                type: "Super Earth",
+                discovery: "2017",
+                star: "TRAPPIST-1",
+                realDistance: "41 light years",
+                period: "9.2 days",
+                info: "TRAPPIST-1 f is a super Earth exoplanet that orbits an M-type star. Its mass is 1.039 Earths, it takes 9.2 days to complete one orbit of its star, and is 0.03849 AU from its star. Its discovery was announced in 2017.",
+                velocity: calculateVelocity(9.2, 10, 60)
+            },
+            {
+                name: "TRAPPIST-1 g",
+                color: 0xffffff,
+                size: calculateSizeByMass(1.321),
+                distance: 700,
+                mass: "1.321 Earth",
+                type: "Super Earth",
+                discovery: "2017",
+                star: "TRAPPIST-1",
+                realDistance: "41 light years",
+                period: "12.4 days",
+                info: "TRAPPIST-1 g is a super Earth exoplanet that orbits an M-type star. Its mass is 1.321 Earths, it takes 12.4 days to complete one orbit of its star, and is 0.04683 AU from its star. Its discovery was announced in 2017.",
+                velocity: calculateVelocity(12.4, 10, 60)
+            },
+            {
+                name: "TRAPPIST-1 h",
+                color: 0xed8a18,
+                size: calculateSizeByMass(0.326),
+                distance: 800,
+                mass: "0.326 Earth",
+                type: "Super Earth",
+                discovery: "2017",
+                star: "TRAPPIST-1",
+                realDistance: "41 light years",
+                period: "18.8 days",
+                info: "TRAPPIST-1 h is a terrestrial exoplanet that orbits an M-type star. Its mass is 0.326 Earths, it takes 18.8 days to complete one orbit of its star, and is 0.06189 AU from its star. Its discovery was announced in 2017.",
+                velocity: calculateVelocity(18.8, 10, 60)
+            },
+        ]
+
+        // Create star field
+        const starGeometry = new THREE.BufferGeometry();
+        const starVertices = [];
+        for(let i = 0; i < 20000; i++) {
+            const x = (Math.random() - 0.5) * 4000;
+            const y = (Math.random() - 0.5) * 4000;
+            const z = (Math.random() - 0.5) * 4000;
+            starVertices.push(x, y, z);
+        }
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const starMaterial = new THREE.PointsMaterial({ 
+            color: 0xffffff,
+            size: 1.2
+        });
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        // Central star
+        const sunGeometry = new THREE.SphereGeometry(65, 65, 65);
+        const sunMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xff2b32
+        });
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        scene.add(sun);
+
+        // Star glow
+        const glowGeometry = new THREE.SphereGeometry(75, 75, 75);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff2b32,
+            transparent: true,
+            opacity: 0.4,
+            side: THREE.BackSide
+        });
+        const sunGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+        scene.add(sunGlow);
+
+        // Create label for the star
+        const starLabel = createTextSprite('TRAPPIST-1 (Star)');
+        starLabel.position.set(0, 95, 0);
+        starLabel.scale.set(50, 12, 1);
+        scene.add(starLabel);
+
+        const sunLight = new THREE.PointLight(0xffffee, 2.5, 1000);
+        scene.add(sunLight);
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+
+        const planets = [];
+        const orbits = [];
+        const labels = [];
+        const labelSprites = [];
+
+        // Create planets
+        function calculateVelocity(periodInDays, timeScaleSeconds = 10, fps = 60) {
+            const frames = periodInDays * timeScaleSeconds * fps;
+             return (2 * Math.PI) / frames;
+        }
+        function calculateSizeByMass(massInEarths) { 
+           const baseRadius = 6;
+            const radius = baseRadius * Math.pow(massInEarths, 1/3.7);
+            return radius +10;  
+        }
+
+        // Function to create text sprite for planet labels
+        function createTextSprite(text) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.font = 'Bold 40px Arial';
+            context.fillStyle = '#64c8ff';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+            
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                opacity: 0.9
+            });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(40, 10, 1);
+            
+            return sprite;
+        }
+
+        exoplanetData.forEach((data, index) => {
+            const geometry = new THREE.SphereGeometry(data.size, 32, 32);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: data.color,
+                roughness: 0.7,
+                metalness: 0.3
+            });
+            const planet = new THREE.Mesh(geometry, material);
+            
+            const angle = (index / exoplanetData.length) * Math.PI * 2;
+            planet.position.x = Math.cos(angle) * data.distance;
+            planet.position.z = Math.sin(angle) * data.distance;
+            planet.position.y = (Math.random() - 0.5) * 20;
+            
+            planet.userData = { ...data, angle: angle };
+            
+            scene.add(planet);
+            planets.push(planet);
+
+            // Orbit
+            const curve = new THREE.EllipseCurve(0, 0, data.distance, data.distance, 0, 2 * Math.PI, false, 0);
+            const points = curve.getPoints(128);
+            const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const orbitMaterial = new THREE.LineBasicMaterial({ 
+                color: data.color,
+                transparent: true,
+                opacity: 0.4
+            });
+            const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+            orbit.rotation.x = Math.PI / 2;
+            orbit.position.y = planet.position.y;
+            scene.add(orbit);
+            orbits.push(orbit);
+
+            // Create label sprite for planet
+            const labelSprite = createTextSprite(data.name);
+            labelSprite.position.copy(planet.position);
+            labelSprite.position.y += data.size + 15;
+            scene.add(labelSprite);
+            labelSprites.push({ sprite: labelSprite, planet: planet, offset: data.size + 15 });
+
+            // Create button to go to planet
+            const btn = document.createElement('button');
+            btn.className = 'planet-btn';
+            btn.textContent = data.name;
+            btn.onclick = () => goToPlanet(planet);
+            document.getElementById('planetButtons').appendChild(btn);
+        });
+
+        camera.position.set(0, 100, 350);
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'KeyW': moveForward = true; break;
+                case 'KeyS': moveBackward = true; break;
+                case 'KeyA': moveLeft = true; break;
+                case 'KeyD': moveRight = true; break;
+                case 'Space': moveUp = true; e.preventDefault(); break;
+                case 'ShiftLeft': moveDown = true; break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch(e.code) {
+                case 'KeyW': moveForward = false; break;
+                case 'KeyS': moveBackward = false; break;
+                case 'KeyA': moveLeft = false; break;
+                case 'KeyD': moveRight = false; break;
+                case 'Space': moveUp = false; break;
+                case 'ShiftLeft': moveDown = false; break;
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            canvas.requestPointerLock();
+        });
+
+        document.addEventListener('pointerlockchange', () => {
+            isLocked = document.pointerLockElement === canvas;
+            document.getElementById('startMessage').style.display = isLocked ? 'none' : 'block';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if(!isLocked) return;
+            yaw -= e.movementX * 0.002;
+            pitch -= e.movementY * 0.002;
+            pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            camera.fov = Math.max(30, Math.min(120, camera.fov + e.deltaY * 0.05));
+            camera.updateProjectionMatrix();
+        });
+
+        function toggleOrbits() {
+            showOrbits = !showOrbits;
+            orbits.forEach(o => o.visible = showOrbits);
+            document.getElementById('orbitBtn').textContent = 'Orbits: ' + (showOrbits ? 'ON' : 'OFF');
+        }
+
+        function toggleLabels() {
+            showLabels = !showLabels;
+            document.getElementById('labelBtn').textContent = 'Names: ' + (showLabels ? 'ON' : 'OFF');
+        }
+
+        function changeSpeed(delta) {
+            simulationSpeed = Math.max(0.1, Math.min(5, simulationSpeed + delta));
+            document.getElementById('speedDisplay').textContent = simulationSpeed.toFixed(1) + 'x';
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').textContent = isPaused ? '▶️ Resume' : '⏸️ Pause';
+        }
+
+        function resetCamera() {
+            camera.position.set(0, 100, 350);
+            yaw = 0;
+            pitch = 0;
+        }
+
+        function goToPlanet(planet) {
+            const offset = 30;
+            camera.position.set(
+                planet.position.x + offset,
+                planet.position.y + offset,
+                planet.position.z + offset
+            );
+        }
+
+        function updatePlanetInfo() {
+            let closest = null;
+            let minDist = Infinity;
+
+            planets.forEach(p => {
+                const dist = camera.position.distanceTo(p.position);
+                if(dist < minDist) {
+                    minDist = dist;
+                    closest = p;
+                }
+            });
+
+            const info = document.getElementById('planetInfo');
+            if(closest && minDist < 150) {
+                const d = closest.userData;
+                info.innerHTML = `
+                    <h3>🪐 ${d.name}</h3>
+                    <p style="font-style: italic; color: #aaa;">${d.info}</p>
+                    <div class="stat"><strong>Type:</strong> ${d.type}</div>
+                    <div class="stat"><strong>Mass:</strong> ${d.mass}</div>
+                    <div class="stat"><strong>Discovery:</strong> ${d.discovery}</div>
+                    <div class="stat"><strong>Star:</strong> ${d.star}</div>
+                    <div class="stat"><strong>Distance from Earth:</strong> ${d.realDistance}</div>
+                    <div class="stat"><strong>Orbital Period:</strong> ${d.period}</div>
+                    <div class="stat"><strong>Camera Distance:</strong> ${minDist.toFixed(1)} units</div>
+                `;
+            } else {
+                info.innerHTML = `
+                    <h3>Stellar System</h3>
+                    <p>Explore space and get close to exoplanets to see detailed information about each one.</p>
+                    <p style="color: #64c8ff; margin-top: 15px;">💡 Use the buttons on the right to go directly to a specific planet!</p>
+                    <div class="stat">
+                        <strong>Camera Position:</strong><br>
+                        X: ${camera.position.x.toFixed(0)}<br>
+                        Y: ${camera.position.y.toFixed(0)}<br>
+                        Z: ${camera.position.z.toFixed(0)}
+                    </div>
+                `;
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const speed = 2;
+            const dir = new THREE.Vector3();
+            
+            if(moveForward) dir.z -= speed;
+            if(moveBackward) dir.z += speed;
+            if(moveLeft) dir.x -= speed;
+            if(moveRight) dir.x += speed;
+            if(moveUp) dir.y += speed;
+            if(moveDown) dir.y -= speed;
+
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = yaw;
+            camera.rotation.x = pitch;
+
+            dir.applyEuler(camera.rotation);
+            camera.position.add(dir);
+
+            if(!isPaused) {
+                planets.forEach(p => {
+                    p.userData.angle += p.userData.velocity * simulationSpeed;
+                    p.position.x = Math.cos(p.userData.angle) * p.userData.distance;
+                    p.position.z = Math.sin(p.userData.angle) * p.userData.distance;
+                    p.rotation.y += 0.01 * simulationSpeed;
+                });
+
+                sun.rotation.y += 0.003 * simulationSpeed;
+            }
+
+            // Update label positions to follow planets
+            labelSprites.forEach(labelData => {
+                labelData.sprite.position.copy(labelData.planet.position);
+                labelData.sprite.position.y = labelData.planet.position.y + labelData.offset;
+            });
+
+            stars.rotation.y += 0.00005;
+            updatePlanetInfo();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        
+        animate();
+
+    </script>
+
+    
+
+</body>
+</html>
