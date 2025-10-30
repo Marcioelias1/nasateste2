@@ -55,7 +55,7 @@ export default function Main() {
           <div className="hero-text">
             <h2>
               Eyes Beyond the Sky: Artificial intelligence that sees planets
-              where there was only darkness.
+              where there was only darkness. =D
             </h2>
             <p>
               Exoplanets are planets that orbit stars outside our Solar System.
@@ -64,7 +64,7 @@ export default function Main() {
               studied to better understand
               <span className="destaque"> the Universe</span> and the
               possibility of life elsewhere.
-            </p>
+            </p>  
           </div>
 
           {/* Box (direita) */}
